@@ -35,10 +35,10 @@ inline int piece_count(Board *state,PlayerColor &start){
     int cnt=0;
     U8* pieces = (U8*)(&(state->data));
     for (int j=0;j<10;j++){
-        if (pieces[j] != DEAD){cnt--;}
+        if (pieces[j] != DEAD){cnt++;}
     }
     for (int j=10;j<20;j++){
-        if (pieces[j] != DEAD){cnt++;}
+        if (pieces[j] != DEAD){cnt--;}
     }
     if (start == WHITE){return cnt;}
     return -cnt;
@@ -54,11 +54,11 @@ int utility(Board *state, PlayerColor &start){
     U8* pieces = (U8*)(&(state->data));
 
     for(int i=0;i<10;i++){
-        black += weights[i]*(pieces[i] != DEAD);
+        white += weights[i]*(pieces[i] != DEAD);
     }
     pieces += 10;
     for(int i=0;i<10;i++){
-        white += weights[i]*(pieces[i] != DEAD);
+        black += weights[i]*(pieces[i] != DEAD);
     }
     
     if (state->in_check()){
