@@ -105,10 +105,11 @@ class MonteCarloNode{
     int rollout(){
         Board current_state = this->state;
         int roll = 0;
-        while (current_state.get_legal_moves().size() && roll < 500)
+        while (current_state.get_legal_moves().size() && roll < 50)
         {
             unordered_set<U16> possible_moves = current_state.get_legal_moves();
             U16 action = this->rollout_policy(possible_moves);
+            cout<<"Rollout count "<<++roll<<' '<<move_to_str(action)<<endl;
             current_state.do_move_(action);
         }
         int val =utility(&current_state);
@@ -132,14 +133,12 @@ class MonteCarloNode{
         return moves[0];
     }
     
-    void backpropagate(int result,int n_){
-        if (n_ > 100){
-            return;
-        }
+    void backpropagate(int result){
+        cout<<this->q()<<' '<<this->n()<<endl;
         this->visits += 1;
         this->results[result] += 1;
         if (this->parent != nullptr && this->parent != this){
-            this->parent->backpropagate(result,n_+1);
+            this->parent->backpropagate(result);
         }
     }
 
@@ -157,12 +156,13 @@ class MonteCarloNode{
         return this->children[argmax];
     }
 
-    MonteCarloNode* tree_policy_construct(){
+    MonteCarloNode* _tree_policy(){
         MonteCarloNode* current_node = this;
         int depth = 0;
         while (!current_node->isTerminal())
         {
             if (!current_node->isExpanded()){
+                // cout<<"Depth"<<depth++<<'\n';
                 return current_node->expand();
             }
             else{
@@ -177,12 +177,18 @@ class MonteCarloNode{
     }
     
     U16 best_move(){
-        int sim=1000;
+        int sim=100;
+        cout<<"Starting for simulation\n";
         while (sim--)
         {
-            MonteCarloNode* v= this->tree_policy_construct();
+            cout<<"Entering Tree_policy\n";
+            MonteCarloNode* v= this->_tree_policy();
+            cout<<"Entering Reward\n";
             int reward = v->rollout();
-            v->backpropagate(reward,1);
+            cout<<"Reward "<<reward<<endl;
+            cout<<"Entering backpropagate\n";
+            v->backpropagate(reward);
+            cout<<"Simulation count "<<sim<<'\n';
         }
         
         return this->best_child()->parent_move; 
@@ -206,5 +212,4 @@ void Engine::find_best_move(const Board& b) {
         MonteCarloNode root(b);
         this->best_move = root.best_move();
     }
-    sleep(1);
 }
